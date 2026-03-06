@@ -1,273 +1,317 @@
-import React, { useState, useRef } from 'react';
-import { CheckCircle, AlertCircle, FileText, Upload, RefreshCw, BookOpen, UploadCloud, File } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>社會工作實習計畫/報告 - 學術審查系統</title>
+  
+  <!-- 載入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- 載入 React 與 ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- 載入 Babel 以便在瀏覽器編譯 JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-slate-50">
+  <div id="root"></div>
 
-const App = () => {
-  const [inputText, setInputText] = useState('');
-  const [analysisResult, setAnalysisResult] = useState(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [fileName, setFileName] = useState('');
-  const fileInputRef = useRef(null);
+  <script type="text/babel">
+    const { useState, useRef } = React;
 
-  // 定義實習報告/計畫的評估指標 (Rubrics)
-  const rubrics = [
-    {
-      id: 'motivation',
-      name: '實習動機與期待',
-      keywords: ['動機', '期待', '初衷', '為什麼選擇', '興趣'],
-      academicAdvice: '建議結合您過去修習的社工理論（如：人類行為與社會環境）或個人生命經驗，深化實習動機。',
-      required: true
-    },
-    {
-      id: 'agency',
-      name: '機構與社區分析',
-      keywords: ['機構簡介', '組織架構', '服務對象', '社區資源', '立案', '宗旨'],
-      academicAdvice: '請不僅列出機構簡介，更應嘗試運用生態系統觀點（Ecological Systems Theory）分析機構在社區中的角色。',
-      required: true
-    },
-    {
-      id: 'objectives',
-      name: '實習目標',
-      keywords: ['實習目標', '預期目標', '學習目標', 'SMART'],
-      academicAdvice: '實習目標請務必符合 SMART 原則：具體(Specific)、可衡量(Measurable)、可達成(Achievable)、相關性(Relevant)與時限性(Time-bound)。',
-      required: true
-    },
-    {
-      id: 'plan',
-      name: '實習內容與計畫',
-      keywords: ['實習內容', '工作項目', '進度安排', '個案工作', '團體工作', '社區工作', '方案設計'],
-      academicAdvice: '請具體說明將採用何種社會工作直接或間接服務方法，並建議列出每週的甘特圖（Gantt Chart）進度表。',
-      required: true
-    },
-    {
-      id: 'reflection',
-      name: '自我反思與督導',
-      keywords: ['反思', '檢討', '督導', '遭遇困難', '倫理困境', '專業成長'],
-      academicAdvice: '建議運用 Kolb 的經驗學習理論（Experiential Learning Cycle），從「具體經驗」到「反思觀察」，進而形成「抽象概念」，最後應用於未來的「主動測試」。記錄潛在的社會工作倫理衝突也是加分項目。',
-      required: true
-    }
-  ];
+    // --- 圖示元件定義 (替代原本的 lucide-react) ---
+    const IconBookOpen = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+    );
+    const IconFileText = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
+    );
+    const IconUploadCloud = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="16 16 12 12 8 16"></polyline><line x1="12" y1="12" x2="12" y2="21"></line><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path><polyline points="16 16 12 12 8 16"></polyline></svg>
+    );
+    const IconFile = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+    );
+    const IconUpload = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+    );
+    const IconRefreshCw = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+    );
+    const IconCheckCircle = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+    );
+    const IconAlertCircle = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+    );
 
-  const handleAnalyze = () => {
-    if (!inputText.trim()) {
-      alert("請先貼上報告內容！");
-      return;
-    }
+    // --- 主程式開始 ---
+    const App = () => {
+      const [inputText, setInputText] = useState('');
+      const [analysisResult, setAnalysisResult] = useState(null);
+      const [isAnalyzing, setIsAnalyzing] = useState(false);
+      const [fileName, setFileName] = useState('');
+      const fileInputRef = useRef(null);
 
-    setIsAnalyzing(true);
+      // 定義實習報告/計畫的評估指標 (Rubrics)
+      const rubrics = [
+        {
+          id: 'motivation',
+          name: '實習動機與期待',
+          keywords: ['動機', '期待', '初衷', '為什麼選擇', '興趣'],
+          academicAdvice: '建議結合您過去修習的社工理論（如：人類行為與社會環境）或個人生命經驗，深化實習動機。',
+          required: true
+        },
+        {
+          id: 'agency',
+          name: '機構與社區分析',
+          keywords: ['機構簡介', '組織架構', '服務對象', '社區資源', '立案', '宗旨'],
+          academicAdvice: '請不僅列出機構簡介，更應嘗試運用生態系統觀點（Ecological Systems Theory）分析機構在社區中的角色。',
+          required: true
+        },
+        {
+          id: 'objectives',
+          name: '實習目標',
+          keywords: ['實習目標', '預期目標', '學習目標', 'SMART'],
+          academicAdvice: '實習目標請務必符合 SMART 原則：具體(Specific)、可衡量(Measurable)、可達成(Achievable)、相關性(Relevant)與時限性(Time-bound)。',
+          required: true
+        },
+        {
+          id: 'plan',
+          name: '實習內容與計畫',
+          keywords: ['實習內容', '工作項目', '進度安排', '個案工作', '團體工作', '社區工作', '方案設計'],
+          academicAdvice: '請具體說明將採用何種社會工作直接或間接服務方法，並建議列出每週的甘特圖（Gantt Chart）進度表。',
+          required: true
+        },
+        {
+          id: 'reflection',
+          name: '自我反思與督導',
+          keywords: ['反思', '檢討', '督導', '遭遇困難', '倫理困境', '專業成長'],
+          academicAdvice: '建議運用 Kolb 的經驗學習理論（Experiential Learning Cycle），從「具體經驗」到「反思觀察」，進而形成「抽象概念」，最後應用於未來的「主動測試」。記錄潛在的社會工作倫理衝突也是加分項目。',
+          required: true
+        }
+      ];
 
-    // 模擬分析延遲，展現學術嚴謹的思考過程
-    setTimeout(() => {
-      const text = inputText;
-      const wordCount = text.length;
-      
-      const results = rubrics.map(rubric => {
-        // 計算關鍵字出現次數
-        const matchCount = rubric.keywords.reduce((count, keyword) => {
-          const regex = new RegExp(keyword, 'g');
-          const matches = text.match(regex);
-          return count + (matches ? matches.length : 0);
-        }, 0);
+      const handleAnalyze = () => {
+        if (!inputText.trim()) {
+          alert("請先貼上報告內容！");
+          return;
+        }
 
-        // 簡單的段落字數估算 (該關鍵字前後的內容豐富度，此為模擬邏輯)
-        const isPresent = matchCount > 0;
-        const isRich = matchCount >= 2 && text.length > 500; // 假設總字數大於500且關鍵字出現兩次以上視為內容較豐富
+        setIsAnalyzing(true);
 
-        let status = 'missing';
-        if (isPresent && isRich) status = 'good';
-        else if (isPresent && !isRich) status = 'needs_improvement';
-
-        return {
-          ...rubric,
-          status,
-          matchCount
-        };
-      });
-
-      // 格式與邏輯總評
-      const hasStructure = results.filter(r => r.status !== 'missing').length >= 3;
-      const logicalScore = Math.min(100, Math.round((results.filter(r => r.status === 'good').length / rubrics.length) * 100 + 20));
-
-      setAnalysisResult({
-        wordCount,
-        rubricResults: results,
-        hasStructure,
-        logicalScore
-      });
-
-      setIsAnalyzing(false);
-    }, 1500);
-  };
-
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setFileName(file.name);
-    
-    // 判斷檔案類型
-    if (file.name.toLowerCase().endsWith('.pdf')) {
-      // 提示：純前端解析 PDF 需要引入 pdf.js，此處以模擬讀取作為雛形展示
-      setInputText("（系統提示：您上傳了 PDF 檔案。在正式部署到 GitHub Pages 時，我們將引入 pdf.js 來擷取文字。此處為模擬解析出的實習計畫內容...）\n\n一、實習動機與期待\n基於對人類行為與社會環境理論的興趣，我選擇此機構，期待能驗證課堂所學...\n\n二、機構與社區分析\n本機構主要服務社區長者，連結社區資源，符合生態系統觀點...\n\n三、實習目標\n希望在三個月內提升個案會談技巧 (符合SMART原則)...\n\n四、實習內容與計畫\n預計每週進行兩次個案訪視，並設計一個支持性團體，進度如甘特圖所示...\n\n五、自我反思與督導\n在面臨案主抗拒時，我將運用督導資源進行反思與調整...");
-    } else if (file.name.toLowerCase().endsWith('.docx') || file.name.toLowerCase().endsWith('.doc')) {
-      // 提示：純前端解析 docx 需要引入 mammoth.js，此處以模擬讀取作為雛形展示
-      setInputText("（系統提示：您上傳了 Word 檔案。在正式部署到 GitHub Pages 時，我們將引入 mammoth.js 來解析 docx。此處為模擬解析出的實習計畫內容...）\n\n一、實習動機與期待\n基於對人類行為與社會環境理論的興趣，我選擇此機構，期待能驗證課堂所學...\n\n二、機構與社區分析\n本機構主要服務社區長者，連結社區資源，符合生態系統觀點...\n\n三、實習目標\n希望在三個月內提升個案會談技巧 (符合SMART原則)...\n\n四、實習內容與計畫\n預計每週進行兩次個案訪視，並設計一個支持性團體，進度如甘特圖所示...\n\n五、自我反思與督導\n在面臨案主抗拒時，我將運用督導資源進行反思與調整...");
-    } else {
-      // 若為純文字檔，直接使用 FileReader 讀取
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setInputText(event.target.result);
-      };
-      reader.readAsText(file);
-    }
-  };
-
-  const triggerFileInput = () => {
-    fileInputRef.current.click();
-  };
-
-  return (
-    <div className="min-h-screen bg-slate-50 p-6 font-sans">
-      <div className="max-w-5xl mx-auto space-y-6">
-        
-        {/* Header Section */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border-t-4 border-blue-800">
-          <div className="flex items-center gap-3 mb-2">
-            <BookOpen className="w-8 h-8 text-blue-800" />
-            <h1 className="text-2xl font-bold text-gray-800">社會工作實習計畫/報告 - 學術審查系統</h1>
-          </div>
-          <p className="text-gray-600">
-            指導教授：大衛林老師<br/>
-            系統說明：本系統運用前端規則引擎，協助學生在提交實習報告前，檢核文章的「結構完整性」、「邏輯一致性」與「格式正確性」。
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        setTimeout(() => {
+          const text = inputText;
+          const wordCount = text.length;
           
-          {/* Input Area */}
-          <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-gray-500" />
-              文件上傳與預覽區
-            </h2>
-            <div className="bg-blue-50 text-blue-800 text-sm p-3 rounded-lg mb-4">
-              <strong>大衛林老師的技術提醒：</strong> 實務上要讓純前端環境解析複雜排版的文件，後續開發需引入 <code>mammoth.js</code> (處理 Word) 或 <code>pdf.js</code> (處理 PDF)。目前的雛形系統已支援 .txt 直接讀取，若上傳 .docx 或 .pdf 則先以模擬文本展示運作邏輯。
-            </div>
+          const results = rubrics.map(rubric => {
+            const matchCount = rubric.keywords.reduce((count, keyword) => {
+              const regex = new RegExp(keyword, 'g');
+              const matches = text.match(regex);
+              return count + (matches ? matches.length : 0);
+            }, 0);
 
-            {/* File Upload Dropzone */}
-            <div 
-              onClick={triggerFileInput}
-              className="border-2 border-dashed border-gray-300 rounded-lg p-6 mb-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-blue-400 transition-colors"
-            >
-              <input 
-                type="file" 
-                ref={fileInputRef}
-                onChange={handleFileUpload} 
-                accept=".txt,.docx,.doc,.pdf" 
-                className="hidden" 
-              />
-              <UploadCloud className="w-10 h-10 text-gray-400 mb-2" />
-              <p className="text-sm text-gray-600 font-medium">點擊此處上傳實習報告檔案</p>
-              <p className="text-xs text-gray-400 mt-1">支援格式：.txt, .docx, .pdf (純前端模擬)</p>
-            </div>
+            const isPresent = matchCount > 0;
+            const isRich = matchCount >= 2 && text.length > 500; 
 
-            {fileName && (
-              <div className="flex items-center gap-2 mb-3 text-sm text-blue-800 bg-blue-100 p-2 rounded-lg font-medium">
-                <File className="w-4 h-4" />
-                <span>已載入檔案：{fileName}</span>
-              </div>
-            )}
+            let status = 'missing';
+            if (isPresent && isRich) status = 'good';
+            else if (isPresent && !isRich) status = 'needs_improvement';
 
-            <textarea
-              className="flex-grow w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none min-h-[250px] text-sm"
-              placeholder="檔案內容將解析並顯示於此，您也可以直接在這裡進行最後的修改微調..."
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-            />
-            <button
-              onClick={handleAnalyze}
-              disabled={isAnalyzing || !inputText.trim()}
-              className={`mt-4 w-full py-3 rounded-lg font-medium text-white flex items-center justify-center gap-2 transition-colors
-                ${isAnalyzing || !inputText.trim() 
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-blue-800 hover:bg-blue-900 shadow-md'}`}
-            >
-              {isAnalyzing ? (
-                <><RefreshCw className="w-5 h-5 animate-spin" /> 學術邏輯演算中...</>
-              ) : (
-                <><Upload className="w-5 h-5" /> 執行學術審查</>
-              )}
-            </button>
-          </div>
+            return {
+              ...rubric,
+              status,
+              matchCount
+            };
+          });
 
-          {/* Analysis Results Area */}
-          <div className="bg-white rounded-xl shadow-sm p-6 overflow-y-auto max-h-[800px]">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">審查結果與修訂建議</h2>
+          const hasStructure = results.filter(r => r.status !== 'missing').length >= 3;
+          const logicalScore = Math.min(100, Math.round((results.filter(r => r.status === 'good').length / rubrics.length) * 100 + 20));
+
+          setAnalysisResult({
+            wordCount,
+            rubricResults: results,
+            hasStructure,
+            logicalScore
+          });
+
+          setIsAnalyzing(false);
+        }, 1500);
+      };
+
+      const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setFileName(file.name);
+        
+        const fileNameLower = file.name.toLowerCase();
+        if (fileNameLower.endsWith('.pdf')) {
+          setInputText("（系統提示：您上傳了 PDF 檔案。在純前端 HTML 環境中，我們以模擬解析出的實習計畫內容作為展示...）\n\n一、實習動機與期待\n基於對人類行為與社會環境理論的興趣，我選擇此機構，期待能驗證課堂所學...\n\n二、機構與社區分析\n本機構主要服務社區長者，連結社區資源，符合生態系統觀點...\n\n三、實習目標\n希望在三個月內提升個案會談技巧 (符合SMART原則)...\n\n四、實習內容與計畫\n預計每週進行兩次個案訪視，並設計一個支持性團體，進度如甘特圖所示...\n\n五、自我反思與督導\n在面臨案主抗拒時，我將運用督導資源進行反思與調整...");
+        } else if (fileNameLower.endsWith('.docx') || fileNameLower.endsWith('.doc')) {
+          setInputText("（系統提示：您上傳了 Word 檔案。在純前端 HTML 環境中，我們以模擬解析出的實習計畫內容作為展示...）\n\n一、實習動機與期待\n基於對人類行為與社會環境理論的興趣，我選擇此機構，期待能驗證課堂所學...\n\n二、機構與社區分析\n本機構主要服務社區長者，連結社區資源，符合生態系統觀點...\n\n三、實習目標\n希望在三個月內提升個案會談技巧 (符合SMART原則)...\n\n四、實習內容與計畫\n預計每週進行兩次個案訪視，並設計一個支持性團體，進度如甘特圖所示...\n\n五、自我反思與督導\n在面臨案主抗拒時，我將運用督導資源進行反思與調整...");
+        } else {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            setInputText(event.target.result);
+          };
+          reader.readAsText(file);
+        }
+      };
+
+      const triggerFileInput = () => {
+        fileInputRef.current.click();
+      };
+
+      return (
+        <div className="min-h-screen p-6 font-sans text-gray-800">
+          <div className="max-w-5xl mx-auto space-y-6">
             
-            {!analysisResult ? (
-              <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4 py-20">
-                <FileText className="w-16 h-16 opacity-20" />
-                <p>等待輸入文本進行分析...</p>
+            {/* Header Section */}
+            <div className="bg-white rounded-xl shadow-sm p-6 border-t-4 border-blue-800">
+              <div className="flex items-center gap-3 mb-2">
+                <IconBookOpen className="w-8 h-8 text-blue-800" />
+                <h1 className="text-2xl font-bold text-gray-800">社會工作實習計畫/報告 - 學術審查系統</h1>
               </div>
-            ) : (
-              <div className="space-y-6 animate-fade-in">
+              <p className="text-gray-600">
+                指導教授：大衛林老師<br/>
+                系統說明：本系統運用前端規則引擎，協助學生在提交實習報告前，檢核文章的「結構完整性」、「邏輯一致性」與「格式正確性」。
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* Input Area */}
+              <div className="bg-white rounded-xl shadow-sm p-6 flex flex-col">
+                <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <IconFileText className="w-5 h-5 text-gray-500" />
+                  文件上傳與預覽區
+                </h2>
+                <div className="bg-blue-50 text-blue-800 text-sm p-3 rounded-lg mb-4">
+                  <strong>大衛林老師的技術提醒：</strong> 此為部署於 GitHub Pages 的單一 HTML 輕量版本。已支援 .txt 直接讀取，若上傳 .docx 或 .pdf 則先以模擬文本展示運作邏輯。
+                </div>
+
+                {/* File Upload Dropzone */}
+                <div 
+                  onClick={triggerFileInput}
+                  className="border-2 border-dashed border-gray-300 rounded-lg p-6 mb-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-blue-400 transition-colors"
+                >
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    onChange={handleFileUpload} 
+                    accept=".txt,.docx,.doc,.pdf" 
+                    className="hidden" 
+                  />
+                  <IconUploadCloud className="w-10 h-10 text-gray-400 mb-2" />
+                  <p className="text-sm text-gray-600 font-medium">點擊此處上傳實習報告檔案</p>
+                  <p className="text-xs text-gray-400 mt-1">支援格式：.txt, .docx, .pdf (純前端模擬)</p>
+                </div>
+
+                {fileName && (
+                  <div className="flex items-center gap-2 mb-3 text-sm text-blue-800 bg-blue-100 p-2 rounded-lg font-medium">
+                    <IconFile className="w-4 h-4" />
+                    <span>已載入檔案：{fileName}</span>
+                  </div>
+                )}
+
+                <textarea
+                  className="flex-grow w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none min-h-[250px] text-sm"
+                  placeholder="檔案內容將解析並顯示於此，您也可以直接在這裡進行最後的修改微調..."
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                />
+                <button
+                  onClick={handleAnalyze}
+                  disabled={isAnalyzing || !inputText.trim()}
+                  className={`mt-4 w-full py-3 rounded-lg font-medium text-white flex items-center justify-center gap-2 transition-colors
+                    ${isAnalyzing || !inputText.trim() 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-blue-800 hover:bg-blue-900 shadow-md'}`}
+                >
+                  {isAnalyzing ? (
+                    <><IconRefreshCw className="w-5 h-5 animate-spin" /> 學術邏輯演算中...</>
+                  ) : (
+                    <><IconUpload className="w-5 h-5" /> 執行學術審查</>
+                  )}
+                </button>
+              </div>
+
+              {/* Analysis Results Area */}
+              <div className="bg-white rounded-xl shadow-sm p-6 overflow-y-auto max-h-[800px]">
+                <h2 className="text-lg font-semibold text-gray-800 mb-4">審查結果與修訂建議</h2>
                 
-                {/* Summary Metrics */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                    <p className="text-sm text-gray-500 mb-1">總字數</p>
-                    <p className="text-2xl font-bold text-gray-800">{analysisResult.wordCount} <span className="text-sm font-normal text-gray-500">字</span></p>
-                    {analysisResult.wordCount < 1000 && <p className="text-xs text-red-500 mt-1">字數偏少，請擴充內容深度。</p>}
+                {!analysisResult ? (
+                  <div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-4 py-20">
+                    <IconFileText className="w-16 h-16 opacity-20" />
+                    <p>等待輸入文本進行分析...</p>
                   </div>
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-                    <p className="text-sm text-gray-500 mb-1">邏輯完整度預估</p>
-                    <p className="text-2xl font-bold text-blue-600">{analysisResult.logicalScore} <span className="text-sm font-normal text-gray-500">/ 100</span></p>
-                  </div>
-                </div>
-
-                {/* Rubric Details */}
-                <div className="space-y-4">
-                  <h3 className="font-medium text-gray-800 border-b pb-2">章節結構檢核表</h3>
-                  {analysisResult.rubricResults.map((item) => (
-                    <div key={item.id} className={`p-4 rounded-lg border-l-4 ${
-                      item.status === 'good' ? 'bg-green-50 border-green-500' :
-                      item.status === 'needs_improvement' ? 'bg-yellow-50 border-yellow-500' :
-                      'bg-red-50 border-red-500'
-                    }`}>
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2">
-                          {item.status === 'good' ? <CheckCircle className="w-5 h-5 text-green-600" /> :
-                           item.status === 'needs_improvement' ? <AlertCircle className="w-5 h-5 text-yellow-600" /> :
-                           <AlertCircle className="w-5 h-5 text-red-600" />}
-                          <h4 className="font-semibold text-gray-800">{item.name}</h4>
-                        </div>
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                          item.status === 'good' ? 'bg-green-100 text-green-800' :
-                          item.status === 'needs_improvement' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {item.status === 'good' ? '結構完整' :
-                           item.status === 'needs_improvement' ? '內容單薄' : '缺漏此章節'}
-                        </span>
+                ) : (
+                  <div className="space-y-6">
+                    
+                    {/* Summary Metrics */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                        <p className="text-sm text-gray-500 mb-1">總字數</p>
+                        <p className="text-2xl font-bold text-gray-800">{analysisResult.wordCount} <span className="text-sm font-normal text-gray-500">字</span></p>
+                        {analysisResult.wordCount < 1000 && <p className="text-xs text-red-500 mt-1">字數偏少，請擴充內容深度。</p>}
                       </div>
-                      
-                      {item.status !== 'good' && (
-                        <div className="mt-3 text-sm text-gray-700 bg-white/50 p-3 rounded">
-                          <strong>大衛林老師的學術建議：</strong>
-                          <p className="mt-1">{item.academicAdvice}</p>
-                        </div>
-                      )}
+                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                        <p className="text-sm text-gray-500 mb-1">邏輯完整度預估</p>
+                        <p className="text-2xl font-bold text-blue-600">{analysisResult.logicalScore} <span className="text-sm font-normal text-gray-500">/ 100</span></p>
+                      </div>
                     </div>
-                  ))}
-                </div>
 
+                    {/* Rubric Details */}
+                    <div className="space-y-4">
+                      <h3 className="font-medium text-gray-800 border-b pb-2">章節結構檢核表</h3>
+                      {analysisResult.rubricResults.map((item) => (
+                        <div key={item.id} className={`p-4 rounded-lg border-l-4 ${
+                          item.status === 'good' ? 'bg-green-50 border-green-500' :
+                          item.status === 'needs_improvement' ? 'bg-yellow-50 border-yellow-500' :
+                          'bg-red-50 border-red-500'
+                        }`}>
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-2">
+                              {item.status === 'good' ? <IconCheckCircle className="w-5 h-5 text-green-600" /> :
+                               item.status === 'needs_improvement' ? <IconAlertCircle className="w-5 h-5 text-yellow-600" /> :
+                               <IconAlertCircle className="w-5 h-5 text-red-600" />}
+                              <h4 className="font-semibold text-gray-800">{item.name}</h4>
+                            </div>
+                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                              item.status === 'good' ? 'bg-green-100 text-green-800' :
+                              item.status === 'needs_improvement' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {item.status === 'good' ? '結構完整' :
+                               item.status === 'needs_improvement' ? '內容單薄' : '缺漏此章節'}
+                            </span>
+                          </div>
+                          
+                          {item.status !== 'good' && (
+                            <div className="mt-3 text-sm text-gray-700 bg-white/50 p-3 rounded">
+                              <strong>大衛林老師的學術建議：</strong>
+                              <p className="mt-1">{item.academicAdvice}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                  </div>
+                )}
               </div>
-            )}
+
+            </div>
           </div>
-
         </div>
-      </div>
-    </div>
-  );
-};
+      );
+    };
 
-export default App;
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
