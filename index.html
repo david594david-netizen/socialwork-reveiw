@@ -14,6 +14,11 @@
   
   <!-- 載入 Babel 以便在瀏覽器編譯 JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- 大衛林老師新增：載入 mammoth.js 用於真實解析 Word 檔 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
+  <!-- 大衛林老師新增：載入 pdf.js 用於真實解析 PDF 檔 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 </head>
 <body class="bg-slate-50">
   <div id="root"></div>
@@ -146,18 +151,69 @@
         if (!file) return;
 
         setFileName(file.name);
+        setInputText('系統正在真實解析您的檔案內容，請稍候...'); // 提示使用者正在讀取
         
         const fileNameLower = file.name.toLowerCase();
-        if (fileNameLower.endsWith('.pdf')) {
-          setInputText("（系統提示：您上傳了 PDF 檔案。在純前端 HTML 環境中，我們以模擬解析出的實習計畫內容作為展示...）\n\n一、實習動機與期待\n基於對人類行為與社會環境理論的興趣，我選擇此機構，期待能驗證課堂所學...\n\n二、機構與社區分析\n本機構主要服務社區長者，連結社區資源，符合生態系統觀點...\n\n三、實習目標\n希望在三個月內提升個案會談技巧 (符合SMART原則)...\n\n四、實習內容與計畫\n預計每週進行兩次個案訪視，並設計一個支持性團體，進度如甘特圖所示...\n\n五、自我反思與督導\n在面臨案主抗拒時，我將運用督導資源進行反思與調整...");
-        } else if (fileNameLower.endsWith('.docx') || fileNameLower.endsWith('.doc')) {
-          setInputText("（系統提示：您上傳了 Word 檔案。在純前端 HTML 環境中，我們以模擬解析出的實習計畫內容作為展示...）\n\n一、實習動機與期待\n基於對人類行為與社會環境理論的興趣，我選擇此機構，期待能驗證課堂所學...\n\n二、機構與社區分析\n本機構主要服務社區長者，連結社區資源，符合生態系統觀點...\n\n三、實習目標\n希望在三個月內提升個案會談技巧 (符合SMART原則)...\n\n四、實習內容與計畫\n預計每週進行兩次個案訪視，並設計一個支持性團體，進度如甘特圖所示...\n\n五、自我反思與督導\n在面臨案主抗拒時，我將運用督導資源進行反思與調整...");
-        } else {
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            setInputText(event.target.result);
-          };
-          reader.readAsText(file);
+
+        try {
+          if (fileNameLower.endsWith('.pdf')) {
+            // 使用 pdf.js 真實讀取 PDF 內容
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+              try {
+                const typedarray = new Uint8Array(event.target.result);
+                // 設定 PDF.js 的 worker 路徑以提升效能
+                window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+                
+                const pdf = await window.pdfjsLib.getDocument(typedarray).promise;
+                let fullText = '';
+                
+                // 逐頁讀取 PDF 文本
+                for (let i = 1; i <= pdf.numPages; i++) {
+                  const page = await pdf.getPage(i);
+                  const textContent = await page.getTextContent();
+                  const pageText = textContent.items.map(item => item.str).join(' ');
+                  fullText += pageText + '\n\n';
+                }
+                
+                setInputText(fullText);
+              } catch (error) {
+                console.error('PDF 解析錯誤:', error);
+                setInputText('PDF 解析失敗。這可能是因為您的 PDF 是由圖片掃描而成（缺乏可選取的文字），或是檔案受到了加密保護。');
+              }
+            };
+            reader.readAsArrayBuffer(file);
+            
+          } else if (fileNameLower.endsWith('.docx') || fileNameLower.endsWith('.doc')) {
+            // 使用 mammoth.js 真實讀取 Word (docx) 內容
+            const reader = new FileReader();
+            reader.onload = function(event) {
+              const arrayBuffer = event.target.result;
+              window.mammoth.extractRawText({arrayBuffer: arrayBuffer})
+                .then(function(result) {
+                  setInputText(result.value);
+                  if (result.messages.length > 0) {
+                    console.log('Mammoth 解析提示:', result.messages);
+                  }
+                })
+                .catch(function(err) {
+                  console.error('Word 解析錯誤:', err);
+                  setInputText("Word 檔案解析失敗，建議您確認檔案是否為標準的 .docx 格式。");
+                });
+            };
+            reader.readAsArrayBuffer(file);
+            
+          } else {
+            // 純文字檔 (.txt) 原生讀取
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              setInputText(event.target.result);
+            };
+            reader.readAsText(file);
+          }
+        } catch (error) {
+          console.error('檔案處理發生未預期錯誤:', error);
+          setInputText("檔案處理發生錯誤，請重新整理網頁後再試。");
         }
       };
 
@@ -173,7 +229,7 @@
             <div className="bg-white rounded-xl shadow-sm p-6 border-t-4 border-blue-800">
               <div className="flex items-center gap-3 mb-2">
                 <IconBookOpen className="w-8 h-8 text-blue-800" />
-                <h1 className="text-2xl font-bold text-gray-800">社會工作實習計畫/報告 - 學術審查系統</h1>
+                <h1 className="text-2xl font-bold text-gray-800">社會工作實習計畫/報告 - 審查系統</h1>
               </div>
               <p className="text-gray-600">
                 指導教授：大衛林老師<br/>
@@ -190,7 +246,7 @@
                   文件上傳與預覽區
                 </h2>
                 <div className="bg-blue-50 text-blue-800 text-sm p-3 rounded-lg mb-4">
-                  <strong>大衛林老師的技術提醒：</strong> 此為部署於 GitHub Pages 的單一 HTML 輕量版本。已支援 .txt 直接讀取，若上傳 .docx 或 .pdf 則先以模擬文本展示運作邏輯。
+                  <strong>大衛林老師的技術提醒：</strong> 系統已正式導入 <code>mammoth.js</code> 與 <code>pdf.js</code>。現在上傳的 Word (.docx) 與 PDF 檔案，將會直接在您的瀏覽器端進行真實的內文擷取與學術審查！
                 </div>
 
                 {/* File Upload Dropzone */}
@@ -292,7 +348,7 @@
                           
                           {item.status !== 'good' && (
                             <div className="mt-3 text-sm text-gray-700 bg-white/50 p-3 rounded">
-                              <strong>大衛林老師的學術建議：</strong>
+                              <strong>大衛林老師的建議：</strong>
                               <p className="mt-1">{item.academicAdvice}</p>
                             </div>
                           )}
